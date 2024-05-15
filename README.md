@@ -1,4 +1,4 @@
-# Vue 3 + Vite
+# AUS Bill Digitize App
 
 This is AUS project for digitizing the old bills.
 
