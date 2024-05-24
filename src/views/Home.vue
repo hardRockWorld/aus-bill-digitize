@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card h-full">
     <DataTable
       v-model:filters="filters"
       v-model:selection="selectedCustomers"

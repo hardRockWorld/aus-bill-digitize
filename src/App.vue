@@ -1,10 +1,56 @@
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
+import { ref, computed, onMounted } from "vue";
+import { RouterLink, RouterView, useRouter, useRoute } from "vue-router";
+import { useSessionStore } from "./stores/user";
+import { useOrderStore } from "./stores/orders";
+import pb from "./pocketbase";
 
-function logout() {
-  // Add your logout logic here
-  console.log("Logged out");
-}
+const sessionStore = useSessionStore();
+const orderStore = useOrderStore();
+const router = useRouter();
+const route = useRoute();
+const routePath = computed(() => route.path);
+
+const proxyIsLoggedIn = ref(sessionStore.getUserLoggedIn());
+const currentUser = ref(null);
+const showLogout = ref(false); // State to show/hide logout option
+
+const checkAuthState = async () => {
+  showLogout.value = false; // Reset showLogout state on auth state check
+  if (pb.authStore.isValid) {
+    const user = pb.authStore.model;
+    proxyIsLoggedIn.value = true;
+    currentUser.value = user;
+    sessionStore.setUser(user, user.email, true, new Date().getTime());
+  } else {
+    sessionStore.removeUser();
+    proxyIsLoggedIn.value = false;
+    currentUser.value = null;
+  }
+};
+
+onMounted(() => {
+  checkAuthState();
+  pb.authStore.onChange(checkAuthState); // Listen to auth state changes
+});
+
+const logout = async () => {
+  try {
+    await pb.authStore.clear(); // Clear the auth store
+    console.log("Logged out");
+    orderStore.clearOrders();
+    sessionStorage.removeItem("dataFetched");
+    sessionStore.removeUser();
+    proxyIsLoggedIn.value = false;
+    router.push("/login");
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const toggleLogout = () => {
+  showLogout.value = !showLogout.value;
+};
 </script>
 
 <template>
@@ -66,16 +112,19 @@ function logout() {
                   to="/"
                   class="bg-gray-900 text-white block rounded-md px-3 py-2 text-base font-medium"
                   aria-current="page"
+                  v-if="proxyIsLoggedIn"
                   >Home</RouterLink
                 >
                 <RouterLink
                   to="/orders"
                   class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-base font-medium"
+                  v-if="proxyIsLoggedIn"
                   >Order Entry</RouterLink
                 >
                 <RouterLink
                   to="/login"
                   class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-base font-medium"
+                  v-if="!proxyIsLoggedIn && routePath !== '/login'"
                   >Login</RouterLink
                 >
               </div>
@@ -107,6 +156,7 @@ function logout() {
             <div class="relative ml-3">
               <div>
                 <button
+                  @click="toggleLogout"
                   type="button"
                   class="relative flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800"
                   id="user-menu-button"
@@ -121,23 +171,26 @@ function logout() {
                   />
                 </button>
               </div>
-              <div
-                class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
-                role="menu"
-                aria-orientation="vertical"
-                aria-labelledby="user-menu-button"
-                tabindex="-1"
-              >
-                <a
-                  href="#"
-                  class="block px-4 py-2 text-sm text-gray-700"
-                  role="menuitem"
+              <transition name="fade">
+                <div
+                  v-if="showLogout && proxyIsLoggedIn"
+                  class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
+                  role="menu"
+                  aria-orientation="vertical"
+                  aria-labelledby="user-menu-button"
                   tabindex="-1"
-                  id="user-menu-item-2"
-                  @click.prevent="logout"
-                  >Logout</a
                 >
-              </div>
+                  <a
+                    href="#"
+                    class="block px-4 py-2 text-sm text-gray-700"
+                    role="menuitem"
+                    tabindex="-1"
+                    id="user-menu-item-2"
+                    @click.prevent="logout"
+                    >Logout</a
+                  >
+                </div>
+              </transition>
             </div>
           </div>
         </div>
@@ -148,26 +201,29 @@ function logout() {
             to="/"
             class="bg-gray-900 text-white block rounded-md px-3 py-2 text-base font-medium"
             aria-current="page"
+            v-if="proxyIsLoggedIn"
             >Home</RouterLink
           >
           <RouterLink
             to="/orders"
             class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium"
+            v-if="proxyIsLoggedIn"
             >Order Entry</RouterLink
           >
           <RouterLink
             to="/login"
             class="text-gray-300 hover:bg-gray-700 hover:text-white block rounded-md px-3 py-2 text-base font-medium"
+            v-if="!proxyIsLoggedIn && routePath !== '/login'"
             >Login</RouterLink
           >
         </div>
       </div>
     </nav>
   </header>
-  <main>
-    <RouterView class="router-view" />
+  <main class="flex items-center justify-center">
+    <RouterView class="m-6 w-3/4" />
   </main>
-  <footer>
+  <footer class="text-center">
     <div>
       <small>Made with 💛 by <span class="author-name">Gourab</span></small>
     </div>
@@ -176,11 +232,20 @@ function logout() {
 
 <style scoped>
 .router-view {
-  width: 100%;
+  width: 60%;
   margin: auto;
 }
 
 .author-name {
   font-weight: 200;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
