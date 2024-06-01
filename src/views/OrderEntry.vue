@@ -16,15 +16,22 @@
         </div>
         <div class="form-group">
           <label for="consigneeName">Consignee Name:</label>
-          <InputText
+          <Dropdown
             id="consigneeName"
-            v-model="order.consigneeName"
+            v-model="selectedCustomer"
+            @change="onConsigneeNameChange"
+            :options="customerNames"
+            optionLabel="cust_name"
+            placeholder="Select a customer"
+            class="p-column-filter"
+            showClear
+            editable
             required
           />
         </div>
         <div class="form-group">
           <label for="address">Address:</label>
-          <InputText id="address" v-model="order.address" required />
+          <InputText id="address" v-model="order.address" disabled required />
         </div>
         <div class="form-group">
           <label for="district">District:</label>
@@ -36,13 +43,25 @@
         </div>
         <div class="form-group">
           <label for="custCategory">Customer Category:</label>
-          <InputText id="custCategory" v-model="order.custCategory" required />
+          <Dropdown
+            id="custCategory"
+            v-model="selectedCustomerCategory"
+            :options="customerCategoryOptions"
+            placeholder="Select a category"
+            class="p-column-filter"
+            showClear
+            required
+          />
         </div>
         <div class="form-group">
           <label for="custActiveStatus">Customer Active Status:</label>
-          <InputText
+          <Dropdown
             id="custActiveStatus"
-            v-model="order.custActiveStatus"
+            v-model="selectedCustomerActiveStatus"
+            :options="customerActiveStatusOptions"
+            placeholder="Select a status"
+            class="p-column-filter"
+            showClear
             required
           />
         </div>
@@ -103,11 +122,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { products } from "../util/constants";
 import OrderItemsRow from "../components/OrderItemsRow.vue";
 import { useSessionStore } from "../stores/user";
 import { useOrderStore } from "../stores/orders";
+import { getAllCustomers, addNewOrder } from "../pocketbase/dbQueries";
 import pb from "../pocketbase";
 
 const sessionStore = useSessionStore();
@@ -158,6 +178,63 @@ const addOrderItem = () => {
   });
 };
 
+// Get the customer names
+const customerNames = ref([]);
+
+// Get the selected customer category & active status
+const selectedCustomerCategory = ref(null);
+const selectedCustomerActiveStatus = ref(null);
+
+// Get the customer category & active status options
+const customerCategoryOptions = ["Premium", "Normal", "Ordinary"];
+const customerActiveStatusOptions = ["Active", "Inactive"];
+
+onMounted(async () => {
+  // Fetch customer names
+  customerNames.value = await getAllCustomers();
+});
+
+const selectedCustomer = ref(null);
+
+const customerAddress = computed(() => {
+  return selectedCustomer.value ? selectedCustomer.value.cust_address : "";
+});
+
+// watch(selectedCustomer, (newValue) => {
+//   if (newValue && selectedCustomer.value) {
+//     order.value.address = customerAddress.value;
+//   } else {
+//     order.value.address = "";
+//   }
+// });
+
+watch(
+  [selectedCustomer, selectedCustomerCategory, selectedCustomerActiveStatus],
+  ([newCustomer, newCategory, newStatus]) => {
+    if (newCustomer && selectedCustomer.value) {
+      order.value.consigneeName = newCustomer.cust_name;
+      order.value.address = newCustomer.cust_address;
+    } else {
+      order.value.consigneeName = "";
+      order.value.address = "";
+    }
+
+    if (newCategory) {
+      order.value.custCategory = newCategory;
+    }
+
+    if (newStatus) {
+      order.value.custActiveStatus = newStatus;
+    }
+  }
+);
+
+const onConsigneeNameChange = () => {
+  if (selectedCustomer.value) {
+    order.value.address = selectedCustomer.value.cust_address;
+  }
+};
+
 // calculate total discounted amount
 const calcGrandTotal = () => {
   let totalOrderAmt = 0;
@@ -191,35 +268,43 @@ const getDiscountAmount = (discount_amt) => {
   discountAmt.value = discount_amt;
 };
 
-// const submitOrder = async () => {
-//   loading.value = true;
+const submitOrder = async () => {
+  loading.value = true;
 
-//   const sessionUserEmail = sessionStore.getUser().email;
-//   const submitResult = await addNewOrder(
-//     db,
-//     order.value,
-//     discRate.value,
-//     sessionUserEmail
-//   );
+  const submitResult = await addNewOrder(order.value, selectedCustomer);
 
-//   if (submitResult && submitResult.docRef) {
-//     const orderData = await fetchSingleDocRef(submitResult.docRef);
+  if (submitResult) {
+    const orderData = await fetchSingleDocRef(submitResult.recordId);
 
-//     // Save the order data to the Pinia store
-//     orderStore.pushOrder(orderData);
+    // Save the order data to the Pinia store
+    orderStore.pushOrder(orderData);
 
-//     // Notify user with message
-//     notificationMsg.value = `Order created | sln : ${submitResult.sln}`;
-//     itemTotalPrices.clear();
-//     calcTotalBillAmt();
-//     order.value = { ...blankOrder, items: [{ name: "", qty: 0 }], discount: 0 };
-//     loading.value = false;
-//   } else {
-//     notificationMsg.value = `Did not Save..`;
-//     calcTotalBillAmt();
-//     loading.value = false;
-//   }
-// };
+    // Notify user with message
+    notificationMsg.value = `Order created | sln : ${submitResult.sln}`;
+    itemTotalPrices.clear();
+    calcTotalBillAmt();
+    order.value = {
+      ...blankOrder,
+      items: [
+        {
+          itemName: "",
+          qty: 0,
+          free: 0,
+          tradePrice: 0,
+          discount: 0,
+          discountAmt: 0,
+          tax: 0,
+          totalAmt: 0,
+        },
+      ],
+    };
+    loading.value = false;
+  } else {
+    notificationMsg.value = `Did not Save..`;
+    calcTotalBillAmt();
+    loading.value = false;
+  }
+};
 
 const isSaveButtonDisabled = computed(() => {
   const noItem = order.value.items == null || order.value.items.length === 0;
