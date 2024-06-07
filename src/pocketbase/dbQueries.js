@@ -32,7 +32,7 @@ const addNewOrder = async (order) => {
         remark: order.remark,
         rating_remark: order.ratingRemark,
     };
-    
+
     const record = await pb.collection("orders").create(data);
     const recordId = record.id;
     const recordBillNo = record.bill_no;
@@ -75,15 +75,31 @@ const getOrderBySLN = async (sln) => {
 
 const fetchAllOrders = async () => {
     let orders = []; // Clear the orders array
-    const q = query(collection(db, "orders"), orderBy("sln", "desc"));
 
-    const querySnapshot = await getDocs(q);
-    await querySnapshot.forEach((doc) => {
-        orders.push({...doc.data(), id: doc.id});
+    // you can also fetch all records at once via getFullList
+    const records = await pb.collection('orders').getFullList({
+        sort: '-bill_no',
     });
+
+    records.forEach((record) => {
+        orders.push(record);
+    })
 
     return orders;
 };
+
+const getCustomerNameFrmConsigneeId = async (consigneeId) => {
+    const consigneeRecord = await pb.collection('customer_details').getOne(consigneeId);
+
+    const customerName = consigneeRecord.cust_name;
+    const customerAddress = consigneeRecord.cust_address;
+
+    return {
+        customerName,
+        customerAddress,
+    };
+};
+
 
 const updateEditOrder = async (db, currentOrder) => {
     let result;
@@ -164,4 +180,5 @@ export {
     getAllCustomers,
     getCustomerCategories,
     getCustomerActiveStatuses,
+    getCustomerNameFrmConsigneeId,
 };
