@@ -47,12 +47,30 @@ const addNewOrder = async (order) => {
     };
 };
 
-const fetchSingleDocRef = async (recordId) => {
-    // Retrieve the document data using the recordId
-    const record = await pb.collection("orders").getOne(recordId, {
-        expand: "bill_No,consignee_name.cust_name,cust_address.cust_name",
-    });
-    return record;
+const fetchSingleRecordItems = async (recordId) => {
+    try {
+        const record = await pb.collection('orders').getOne(recordId, {
+            expand: 'order_items'
+        });
+
+        // Check if the expanded order_items is an array
+        if (Array.isArray(record.expand.order_items)) {
+            return record.expand.order_items.map(item => ({
+                item_name: item.item_name || '',
+                qty: item.qty || 0,
+                discount: item.discount || 0,
+                free: item.free || false,
+                trade_price: item.trade_price || 0,
+                tax: item.tax || 0,
+                total_amt: item.total_amt || 0,
+            }));
+        } else {
+            return [];
+        }
+    } catch (error) {
+        console.error('Error fetching single record items:', error);
+        return [];
+    }
 };
 
 // Get a single order by sln
@@ -172,7 +190,7 @@ const getCustomerActiveStatuses = async () => {
 
 export {
     addNewOrder,
-    fetchSingleDocRef,
+    fetchSingleRecordItems,
     fetchAllOrders,
     updateUnEditOrder,
     updateEditOrder,

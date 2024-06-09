@@ -103,11 +103,11 @@
         </div>
         <div class="form-group">
           <label for="remark">Remark:</label>
-          <InputText id="remark" v-model="order.remark" required/>
+          <InputText id="remark" v-model="order.remark"/>
         </div>
         <div class="form-group">
           <label for="ratingRemark">Rating Remark:</label>
-          <InputText id="ratingRemark" v-model="order.ratingRemark" required/>
+          <InputText id="ratingRemark" v-model="order.ratingRemark"/>
         </div>
       </div>
 
@@ -124,9 +124,8 @@ import {products} from "../util/constants";
 import OrderItemsRow from "../components/OrderItemsRow.vue";
 import {useSessionStore} from "../stores/user";
 import {useOrderStore} from "../stores/orders";
-import {getAllCustomers, addNewOrder, fetchSingleDocRef} from "../pocketbase/dbQueries";
+import {getAllCustomers, addNewOrder, fetchSingleRecordItems} from "../pocketbase/dbQueries";
 import {useToast} from 'primevue/usetoast';
-import pb from "../pocketbase";
 
 const sessionStore = useSessionStore();
 const orderStore = useOrderStore();
@@ -285,7 +284,7 @@ const submitOrder = async () => {
   const submitResult = await addNewOrder(order.value);
 
   if (submitResult) {
-    const orderData = await fetchSingleDocRef(submitResult.recordId);
+    const orderData = await fetchSingleRecordItems(submitResult.recordId);
 
     // Save the order data to the Pinia store
     orderStore.pushOrder(orderData);

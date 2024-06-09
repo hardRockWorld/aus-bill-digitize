@@ -85,9 +85,42 @@
           <label for="billDate">Bill Date</label>
           <Calendar v-model="selectedOrder.bill_date" id="billDate" dateFormat="dd/mm/yy"/>
         </div>
+        <div v-for="(item, i) in selectedOrder.items" :key="i" class="p-col-12">
+          <OrderItemsRow
+              v-model:itemName="item.item_name"
+              v-model:qty="item.qty"
+              v-model:discount="item.discount"
+              v-model:free="item.free"
+              v-model:tradePrice="item.trade_price"
+              v-model:tax="item.tax"
+              :index="i"
+              :products="products"
+              @delete-item="(idx) => selectedOrder.items.splice(idx, 1)"
+              @update:total-price="(totalPrice) => updateTotalOrderAmt(i, totalPrice)"
+              @update:discount="(discount_amt) => getDiscountAmount(discount_amt)"
+          />
+        </div>
         <div class="p-col-12">
-          <label for="billAmount">Bill Amount</label>
-          <InputText v-model="selectedOrder.grand_total" id="billAmount"/>
+          <!-- Add item -->
+          <Button
+              @click="addOrderItem"
+              class="secondary"
+              :disabled="isSaveButtonDisabled"
+          >
+            Add item
+          </Button>
+        </div>
+        <div class="p-col-12">
+          <label for="grandTotal">Grand Total:</label>
+          <InputText id="grandTotal" v-model="selectedOrder.grandTotal"/>
+        </div>
+        <div class="p-col-12">
+          <label for="remark">Remark:</label>
+          <InputText id="remark" v-model="selectedOrder.remark"/>
+        </div>
+        <div class="p-col-12">
+          <label for="ratingRemark">Rating Remark:</label>
+          <InputText id="ratingRemark" v-model="selectedOrder.ratingRemark"/>
         </div>
       </div>
       <template #footer>
@@ -101,14 +134,32 @@
 </template>
 
 <script setup>
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {FilterMatchMode, FilterOperator} from "primevue/api";
-import {fetchAllOrders, getCustomerNameFrmConsigneeId} from "../pocketbase/dbQueries";
+import {fetchAllOrders, getCustomerNameFrmConsigneeId, fetchSingleRecordItems} from "../pocketbase/dbQueries";
+import OrderItemsRow from "../components/OrderItemsRow.vue";
+import {products} from "../util/constants.js";
 
 const orders = ref([]);
 const selectedCustomers = ref();
-const selectedOrder = ref({});
+const selectedOrder = ref({
+  items: [], // Initialize items to an empty array
+});
 const editDialogVisible = ref(false);
+
+const discountAmt = ref(0);
+
+const addOrderItem = () => {
+  selectedOrder.value.items.push({
+    itemName: "",
+    qty: 0,
+    free: 0,
+    tradePrice: 0,
+    discount: 0,
+    tax: 0,
+    totalAmt: 0,
+  });
+};
 
 const filters = ref({
   global: {value: null, matchMode: FilterMatchMode.CONTAINS},
@@ -184,8 +235,30 @@ const fetchOrders = async () => {
   }
 };
 
-const openEditDialog = (order) => {
-  selectedOrder.value = {...order};
+// calculate total discounted amount
+const calcGrandTotal = () => {
+  let totalOrderAmt = 0;
+  selectedOrder.value.items.forEach((item) => {
+    totalOrderAmt += item.totalAmt || 0; // Ensure totalAmt is defined
+  });
+  selectedOrder.value.grandTotal = Math.round(parseFloat(totalOrderAmt) * 100) / 100;
+};
+
+// get the discountRate
+const getDiscountAmount = (discount_amt) => {
+  discountAmt.value = discount_amt;
+};
+
+// for updating total discounted amt
+const updateTotalOrderAmt = (index, totalPrice) => {
+  selectedOrder.value.items[index].totalAmt = totalPrice;
+  calcGrandTotal();
+};
+
+const openEditDialog = async (order) => {
+  selectedOrder.value = {...order, items: []};
+  const rowItems = await fetchSingleRecordItems(order.id);
+  selectedOrder.value.items = rowItems || [];
   editDialogVisible.value = true;
 };
 
@@ -194,6 +267,16 @@ const saveOrder = () => {
   console.log("Saved order:", selectedOrder.value);
   editDialogVisible.value = false;
 };
+
+const isSaveButtonDisabled = computed(() => {
+  const noItem = selectedOrder.value.items == null || selectedOrder.value.items.length === 0;
+  const hasInvalidQuantity = selectedOrder.value.items.some((item) => item.qty < 1);
+  const hasInvalidName = selectedOrder.value.items.some((item) => {
+    const productName = (item.item_name || "").toString().trim();
+    return productName === "";
+  });
+  return hasInvalidQuantity || hasInvalidName || noItem;
+});
 
 const formatCurrency = (value) => {
   return value.toLocaleString("en-IN", {style: "currency", currency: "INR"});

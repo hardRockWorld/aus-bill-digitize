@@ -1,5 +1,5 @@
 <script setup>
-import {ref, computed, watch} from "vue";
+import {ref, watch} from "vue";
 
 const props = defineProps({
   index: Number,
@@ -103,6 +103,9 @@ defineExpose({
             placeholder="Select an item"
             class="w-full"
             @change="$emit('update:name', $event.value)"
+            editable
+            showClear
+            required
         />
         <small v-if="productName === ''" class="text-red-500"
         >Select an item</small
