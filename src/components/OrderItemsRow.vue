@@ -1,13 +1,29 @@
 <script setup>
-import {ref, watch} from "vue";
+import { ref, watch } from "vue";
 
 const props = defineProps({
   index: Number,
-  itemName: String,
-  qty: Number,
-  products: Array,
-  free: Number,
-  tradePrice: Number,
+  itemName: {
+    type: String,
+    required: true,
+  },
+  qty: {
+    type: Number,
+    required: true,
+  },
+  products: {
+    type: Array,
+    required: true,
+  },
+  free: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+  tradePrice: {
+    type: Number,
+    required: true,
+  },
   discount: {
     type: Number,
     default: 30.0,
@@ -19,7 +35,7 @@ const emit = defineEmits([
   "delete-item",
   "update:total-price",
   "update:discount",
-  "update:name",
+  "update:itemName",
   "update:qty",
   "update:free",
   "update:tradePrice",
@@ -39,14 +55,24 @@ const tax = ref(props.tax);
 const totalPrice = ref(0);
 const discountAmt = ref(0);
 
+const handleItemNameChange = (event) => {
+  if (event.value) {
+    productName.value = event.value.name;
+    emit("update:itemName", String(event.value.name));
+  } else {
+    productName.value = ""; // Clear the productName if the value is empty
+    emit("update:itemName", ""); // Emit an empty value
+  }
+};
+
 const calcDiscountAmt = () => {
   const discount = (
-      tradePrice.value *
-      productQty.value *
-      (discountRate.value / 100)
+    tradePrice.value *
+    productQty.value *
+    (discountRate.value / 100)
   ).toFixed(2);
-  emit("update:discountAmt", discount);
-  return discount;
+  emit("update:discountAmt", Number(discount.value));
+  return Number(discount);
 };
 
 const calcTotalPrice = () => {
@@ -54,20 +80,24 @@ const calcTotalPrice = () => {
   emit("update:discount", discount_rate);
 
   const subtotal =
-      tradePrice.value * productQty.value * (1 - discount_rate / 100);
-  const total = (subtotal + (tax.value / 100) * subtotal).toFixed(2);
+    tradePrice.value * productQty.value * (1 - discount_rate / 100);
+  const total = !isNaN(subtotal)
+    ? (subtotal + (tax.value / 100) * subtotal).toFixed(2)
+    : 0;
 
   return parseFloat(total);
 };
 
 watch(
-    [productName, productQty, discountRate, tradePrice, tax],
-    () => {
+  [productName, productQty, discountRate, tradePrice, tax],
+  () => {
+    if (props.itemName) {
       discountAmt.value = calcDiscountAmt();
       totalPrice.value = calcTotalPrice();
       emit("update:total-price", totalPrice.value);
-    },
-    {immediate: true}
+    }
+  },
+  { immediate: true }
 );
 
 defineExpose({
@@ -80,13 +110,13 @@ defineExpose({
 
 <template>
   <div
-      class="grid gap-4 p-4 border border-gray-300 rounded-lg shadow-md w-full"
+    class="grid gap-4 p-4 border border-gray-300 rounded-lg shadow-md w-full"
   >
     <div class="flex items-center gap-2">
       <Button
-          icon="pi pi-trash"
-          class="p-button-danger"
-          @click.prevent="$emit('delete-item', props.index)"
+        icon="pi pi-trash"
+        class="p-button-danger"
+        @click.prevent="$emit('delete-item', props.index)"
       />
       <span>
         Item #<span class="font-bold">{{ props.index + 1 }}</span>
@@ -97,110 +127,110 @@ defineExpose({
       <div class="flex flex-col gap-2">
         <label for="items" class="block text-gray-700">Item Name</label>
         <Dropdown
-            v-model="productName"
-            :options="props.products"
-            optionLabel="name"
-            placeholder="Select an item"
-            class="w-full"
-            @change="$emit('update:name', $event.value)"
-            editable
-            showClear
-            required
+          v-model="productName"
+          :options="props.products"
+          optionLabel="name"
+          placeholder="Select an item"
+          class="w-full"
+          @change="handleItemNameChange"
+          editable
+          showClear
+          required
         />
         <small v-if="productName === ''" class="text-red-500"
-        >Select an item</small
+          >Select an item</small
         >
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="qty" class="block text-gray-700">Qty</label>
-        <InputText
-            type="number"
-            v-model.number="productQty"
-            id="qty"
-            placeholder="Qty"
-            class="w-full"
-            @input="$emit('update:qty', Number($event.target.value))"
+        <InputNumber
+          v-model="productQty"
+          id="qty"
+          placeholder="Qty"
+          class="w-full"
+          @input="$emit('update:qty', Number($event.value))"
         />
         <small v-if="productQty < 1" class="text-red-500"
-        >Qty cannot be 0</small
+          >Qty cannot be 0</small
         >
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="free" class="block text-gray-700">Free</label>
-        <InputText
-            type="number"
-            v-model.number="free"
-            id="free"
-            placeholder="Free"
-            class="w-full"
-            @input="$emit('update:free', Number($event.target.value))"
+        <InputNumber
+          v-model="free"
+          id="free"
+          placeholder="Free"
+          class="w-full"
+          @input="$emit('update:free', Number($event.value))"
         />
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="tradePrice" class="block text-gray-700">Trade Price</label>
-        <InputText
-            type="number"
-            v-model.number="tradePrice"
-            id="tradePrice"
-            placeholder="Trade Price"
-            class="w-full"
-            @input="$emit('update:tradePrice', Number($event.target.value))"
+        <InputNumber
+          v-model="tradePrice"
+          id="tradePrice"
+          placeholder="Trade Price"
+          class="w-full"
+          @input="$emit('update:tradePrice', Number($event.value))"
         />
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="discount" class="block text-gray-700">Discount %</label>
-        <InputText
-            type="number"
-            v-model.number="discountRate"
-            id="discount"
-            step="0.01"
-            class="w-full"
-            @input="$emit('update:discount', Number($event.target.value))"
+        <InputNumber
+          v-model="discountRate"
+          id="discount"
+          inputId="percent"
+          prefix="%"
+          class="w-full"
+          @input="$emit('update:discount', Number($event.value))"
         />
         <small v-if="discountRate <= 0" class="text-red-500"
-        >No Discount!</small
+          >No Discount!</small
         >
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="discountAmt" class="block text-gray-700"
-        >Discount Amount</label
+          >Discount Amount</label
         >
-        <InputText
-            type="number"
-            :value="discountAmt"
-            id="discountAmt"
-            placeholder="Discount Amount"
-            class="w-full"
-            disabled
+        <InputNumber
+          v-model="discountAmt"
+          id="discountAmt"
+          placeholder="Discount Amount"
+          class="w-full"
+          mode="currency"
+          currency="INR"
+          disabled
         />
       </div>
 
       <div class="flex flex-col gap-2">
-        <label for="tax" class="block text-gray-700">Tax</label>
-        <InputText
-            type="number"
-            v-model.number="tax"
-            id="tax"
-            placeholder="Tax"
-            class="w-full"
-            @input="$emit('update:tax', Number($event.target.value))"
+        <label for="tax" class="block text-gray-700">Tax %</label>
+        <InputNumber
+          v-model="tax"
+          id="tax"
+          inputId="percent"
+          prefix="%"
+          placeholder="Tax"
+          class="w-full"
+          @input="$emit('update:tax', Number($event.value))"
         />
       </div>
 
       <div class="flex flex-col gap-2">
         <label for="totalAmt" class="block text-gray-700">Total Amount</label>
-        <InputText
-            type="number"
-            :value="totalPrice"
-            id="totalAmt"
-            placeholder="Total Amount"
-            class="w-full"
-            disabled
+        <InputNumber
+          v-model="totalPrice"
+          id="totalAmt"
+          placeholder="Total Amount"
+          class="w-full"
+          mode="currency"
+          currency="INR"
+          disabled
         />
       </div>
     </div>

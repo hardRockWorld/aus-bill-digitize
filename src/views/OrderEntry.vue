@@ -4,65 +4,65 @@
       <div class="lg:grid lg:grid-cols-2 gap-4">
         <div class="form-group">
           <label for="billNo">Bill No:</label>
-          <InputNumber id="billNo" v-model="order.billNo" required/>
+          <InputNumber id="billNo" v-model="order.billNo" required />
         </div>
         <div class="form-group">
           <label for="billDate">Bill Date:</label>
           <Calendar
-              id="billDate"
-              v-model="order.billDate"
-              dateFormat="dd/mm/yy"
+            id="billDate"
+            v-model="order.billDate"
+            dateFormat="dd/mm/yy"
           />
         </div>
         <div class="form-group">
           <label for="consigneeName">Consignee Name:</label>
           <Dropdown
-              id="consigneeName"
-              v-model="selectedCustomer"
-              @change="onConsigneeNameChange"
-              :options="customerNames"
-              optionLabel="cust_name"
-              placeholder="Select a customer"
-              class="p-column-filter"
-              showClear
-              editable
-              required
+            id="consigneeName"
+            v-model="selectedCustomer"
+            @change="onConsigneeNameChange"
+            :options="customerNames"
+            optionLabel="cust_name"
+            placeholder="Select a customer"
+            class="p-column-filter"
+            showClear
+            editable
+            required
           />
         </div>
         <div class="form-group">
           <label for="address">Address:</label>
-          <InputText id="address" v-model="order.address" disabled required/>
+          <InputText id="address" v-model="order.address" disabled required />
         </div>
         <div class="form-group">
           <label for="district">District:</label>
-          <InputText id="district" v-model="order.district" required/>
+          <InputText id="district" v-model="order.district" required />
         </div>
         <div class="form-group">
           <label for="zone">Zone:</label>
-          <InputText id="zone" v-model="order.zone" required/>
+          <InputText id="zone" v-model="order.zone" required />
         </div>
         <div class="form-group">
           <label for="custCategory">Customer Category:</label>
           <Dropdown
-              id="custCategory"
-              v-model="selectedCustomerCategory"
-              :options="customerCategoryOptions"
-              placeholder="Select a category"
-              class="p-column-filter"
-              showClear
-              required
+            id="custCategory"
+            v-model="selectedCustomerCategory"
+            :options="customerCategoryOptions"
+            placeholder="Select a category"
+            class="p-column-filter"
+            showClear
+            required
           />
         </div>
         <div class="form-group">
           <label for="custActiveStatus">Customer Active Status:</label>
           <Dropdown
-              id="custActiveStatus"
-              v-model="selectedCustomerActiveStatus"
-              :options="customerActiveStatusOptions"
-              placeholder="Select a status"
-              class="p-column-filter"
-              showClear
-              required
+            id="custActiveStatus"
+            v-model="selectedCustomerActiveStatus"
+            :options="customerActiveStatusOptions"
+            placeholder="Select a status"
+            class="p-column-filter"
+            showClear
+            required
           />
         </div>
       </div>
@@ -71,26 +71,28 @@
       <div class="w-full">
         <div v-for="(item, i) in order.items" :key="i" class="form-group">
           <OrderItemsRow
-              v-model:name="item.itemName"
-              v-model:qty="item.qty"
-              v-model:discount="item.discount"
-              v-model:free="item.free"
-              v-model:tradePrice="item.tradePrice"
-              v-model:tax="item.tax"
-              :index="i"
-              :products="products"
-              @delete-item="(idx) => order.items.splice(idx, 1)"
-              @update:total-price="(totalPrice) => updateTotalOrderAmt(i, totalPrice)"
-              @update:discount="(discount_amt) => getDiscountAmount(discount_amt)"
+            v-model:itemName="item.itemName"
+            v-model:qty="item.qty"
+            v-model:discount="item.discount"
+            v-model:free="item.free"
+            v-model:tradePrice="item.tradePrice"
+            v-model:tax="item.tax"
+            :index="i"
+            :products="products"
+            @delete-item="(idx) => order.items.splice(idx, 1)"
+            @update:total-price="
+              (totalPrice) => updateTotalOrderAmt(i, totalPrice)
+            "
+            @update:discount="(discount_amt) => getDiscountAmount(discount_amt)"
           />
         </div>
       </div>
 
       <!-- Add item -->
       <Button
-          @click="addOrderItem"
-          class="secondary"
-          :disabled="isSaveButtonDisabled"
+        @click="addOrderItem"
+        class="secondary"
+        :disabled="isSaveButtonDisabled"
       >
         Add item
       </Button>
@@ -99,33 +101,37 @@
       <div class="lg:grid lg:grid-cols-2 gap-4 w-full">
         <div class="form-group">
           <label for="grandTotal">Grand Total:</label>
-          <InputText id="grandTotal" v-model="order.grandTotal" required/>
+          <InputText id="grandTotal" v-model="order.grandTotal" required />
         </div>
         <div class="form-group">
           <label for="remark">Remark:</label>
-          <InputText id="remark" v-model="order.remark"/>
+          <InputText id="remark" v-model="order.remark" />
         </div>
         <div class="form-group">
           <label for="ratingRemark">Rating Remark:</label>
-          <InputText id="ratingRemark" v-model="order.ratingRemark"/>
+          <InputText id="ratingRemark" v-model="order.ratingRemark" />
         </div>
       </div>
 
       <div class="form-group flex justify-center w-full">
-        <Button type="submit" label="Submit Order"/>
+        <Button type="submit" label="Submit Order" />
       </div>
     </form>
   </div>
 </template>
 
 <script setup>
-import {ref, computed, watch, onMounted} from "vue";
-import {products} from "../util/constants";
+import { ref, computed, watch, onMounted } from "vue";
+import { products } from "../util/constants";
 import OrderItemsRow from "../components/OrderItemsRow.vue";
-import {useSessionStore} from "../stores/user";
-import {useOrderStore} from "../stores/orders";
-import {getAllCustomers, addNewOrder, fetchSingleRecordItems} from "../pocketbase/dbQueries";
-import {useToast} from 'primevue/usetoast';
+import { useSessionStore } from "../stores/user";
+import { useOrderStore } from "../stores/orders";
+import {
+  getAllCustomers,
+  addNewOrder,
+  fetchSingleRecordItems,
+} from "../pocketbase/dbQueries";
+import { useToast } from "primevue/usetoast";
 
 const sessionStore = useSessionStore();
 const orderStore = useOrderStore();
@@ -137,15 +143,20 @@ const toast = useToast();
 
 const showSuccess = (bill_no) => {
   toast.add({
-    severity: 'success',
-    summary: 'Order Created',
+    severity: "success",
+    summary: "Order Created",
     detail: `sln : ${bill_no}`,
-    life: 3000
+    life: 3000,
   });
-}
+};
 
 const showError = (err_msg) => {
-  toast.add({severity: 'error', summary: 'Error', detail: `${err_msg}`, life: 3000});
+  toast.add({
+    severity: "error",
+    summary: "Error",
+    detail: `${err_msg}`,
+    life: 3000,
+  });
 };
 
 const blankOrder = {
@@ -173,9 +184,7 @@ const blankOrder = {
   ratingRemark: "",
 };
 
-const order = ref({...blankOrder});
-
-const notificationMsg = ref("");
+const order = ref({ ...blankOrder });
 
 const addOrderItem = () => {
   order.value.items.push({
@@ -204,7 +213,7 @@ const customerCategoryOptions = ["Premium", "Normal", "Ordinary"];
 const customerActiveStatusOptions = ["Active", "Inactive"];
 
 onMounted(async () => {
-// Fetch customer names
+  // Fetch customer names
   customerNames.value = await getAllCustomers();
 });
 
@@ -214,33 +223,25 @@ const customerAddress = computed(() => {
   return selectedCustomer.value ? selectedCustomer.value.cust_address : "";
 });
 
-// watch(selectedCustomer, (newValue) => {
-//   if (newValue && selectedCustomer.value) {
-//     order.value.address = customerAddress.value;
-//   } else {
-//     order.value.address = "";
-//   }
-// });
-
 watch(
-    [selectedCustomer, selectedCustomerCategory, selectedCustomerActiveStatus],
-    ([newCustomer, newCategory, newStatus]) => {
-      if (newCustomer && selectedCustomer.value) {
-        order.value.consigneeName = newCustomer.cust_id;
-        order.value.address = newCustomer.cust_address;
-      } else {
-        order.value.consigneeName = "";
-        order.value.address = "";
-      }
-
-      if (newCategory) {
-        order.value.custCategory = newCategory;
-      }
-
-      if (newStatus) {
-        order.value.custActiveStatus = newStatus;
-      }
+  [selectedCustomer, selectedCustomerCategory, selectedCustomerActiveStatus],
+  ([newCustomer, newCategory, newStatus]) => {
+    if (newCustomer && selectedCustomer.value) {
+      order.value.consigneeName = newCustomer.cust_id;
+      order.value.address = newCustomer.cust_address;
+    } else {
+      order.value.consigneeName = "";
+      order.value.address = "";
     }
+
+    if (newCategory) {
+      order.value.custCategory = newCategory;
+    }
+
+    if (newStatus) {
+      order.value.custActiveStatus = newStatus;
+    }
+  }
 );
 
 const onConsigneeNameChange = () => {
@@ -266,11 +267,11 @@ const updateTotalOrderAmt = (index, totalPrice) => {
 };
 
 watch(
-    order.value.items,
-    () => {
-      calcGrandTotal();
-    },
-    {deep: true}
+  order.value.items,
+  () => {
+    calcGrandTotal();
+  },
+  { deep: true }
 );
 
 // get the discountRate
@@ -309,7 +310,7 @@ const submitOrder = async () => {
     };
     loading.value = false;
   } else {
-    showError('did not save..!');
+    showError("did not save..!");
     calcGrandTotal();
     loading.value = false;
   }
