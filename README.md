@@ -7,3 +7,4 @@ This is AUS project for digitizing the old bills.
 - Vue.js 3
 - Tailwindcss
 - PrimeVue UI library
+- PocketBase
