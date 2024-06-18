@@ -26,3 +26,6 @@ pocketbase/LICENSE.md
 *.njsproj
 *.sln
 *.sw?
+
+# Production env files
+.env.prod
