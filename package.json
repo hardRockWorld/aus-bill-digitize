@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "copyfiles .env.local .env && vite",
-    "build": "copyfiles .env.prod .env && vite build",
-    "preview": "copyfiles .env.local .env && vite preview"
+    "dev": "vite --mode dev",
+    "build": "vite build --mode prod",
+    "preview": "vite preview --mode dev"
   },
   "dependencies": {
     "@vueuse/core": "^10.9.0",
@@ -20,7 +20,6 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
     "autoprefixer": "^10.4.19",
-    "copyfiles": "^2.4.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.3",
     "vite": "^5.2.0"
