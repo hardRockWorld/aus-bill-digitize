@@ -1,5 +1,5 @@
 <template>
-  <div class="p-4 border border-gray-300 rounded-lg shadow-md min-w-2 w-3/4">
+  <div class="p-4 border border-gray-300 rounded-lg shadow-md">
     <form @submit.prevent="submitOrder" class="my-3 grid gap-4">
       <div class="lg:grid lg:grid-cols-2 gap-4">
         <div class="form-group">

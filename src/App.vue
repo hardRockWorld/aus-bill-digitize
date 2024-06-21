@@ -201,7 +201,7 @@ const toggleLogout = () => {
     </nav>
   </header>
   <main class="flex items-center justify-center">
-    <RouterView class="m-6 w-3/4" />
+    <RouterView class="m-6" />
   </main>
   <footer class="text-center">
     <div>

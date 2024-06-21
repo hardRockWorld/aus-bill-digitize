@@ -123,8 +123,8 @@ defineExpose({
       </span>
     </div>
 
-    <div class="grid grid-cols-2 gap-3">
-      <div class="flex flex-col gap-2">
+    <div class="boxes grid grid-cols-2 gap-3">
+      <div class="box flex flex-col gap-2">
         <label for="items" class="block text-gray-700">Item Name</label>
         <Dropdown
           v-model="productName"
@@ -142,7 +142,7 @@ defineExpose({
         >
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="qty" class="block text-gray-700">Qty</label>
         <InputNumber
           v-model="productQty"
@@ -156,7 +156,7 @@ defineExpose({
         >
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="free" class="block text-gray-700">Free</label>
         <InputNumber
           v-model="free"
@@ -167,7 +167,7 @@ defineExpose({
         />
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="tradePrice" class="block text-gray-700">Trade Price</label>
         <InputNumber
           v-model="tradePrice"
@@ -178,7 +178,7 @@ defineExpose({
         />
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="discount" class="block text-gray-700">Discount %</label>
         <InputNumber
           v-model="discountRate"
@@ -193,7 +193,7 @@ defineExpose({
         >
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="discountAmt" class="block text-gray-700"
           >Discount Amount</label
         >
@@ -208,7 +208,7 @@ defineExpose({
         />
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="tax" class="block text-gray-700">Tax %</label>
         <InputNumber
           v-model="tax"
@@ -221,7 +221,7 @@ defineExpose({
         />
       </div>
 
-      <div class="flex flex-col gap-2">
+      <div class="box flex flex-col gap-2">
         <label for="totalAmt" class="block text-gray-700">Total Amount</label>
         <InputNumber
           v-model="totalPrice"
@@ -237,4 +237,23 @@ defineExpose({
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media screen and (max-width: 700px) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media screen and (max-width: 500px) {
+    gap: 1rem;
+  }
+
+  @media screen and (max-width: 400px) {
+    gap: 0.5rem;
+  }
+}
+</style>
