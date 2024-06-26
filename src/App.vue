@@ -36,7 +36,7 @@ onMounted(() => {
 
 const logout = async () => {
   try {
-    await pb.authStore.clear(); // Clear the auth store
+    pb.authStore.clear(); // Clear the auth store
     console.log("Logged out");
     orderStore.clearOrders();
     sessionStorage.removeItem("dataFetched");

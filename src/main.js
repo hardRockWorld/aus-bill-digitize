@@ -1,11 +1,11 @@
-import {createApp} from "vue";
+import { createApp } from "vue";
 import "./style.css";
 import PrimeVue from "primevue/config";
 import Card from "primevue/card";
 import DataTable from "primevue/datatable";
 import Calendar from "primevue/calendar";
 import Dropdown from "primevue/dropdown";
-import Dialog from 'primevue/dialog';
+import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import FloatLabel from "primevue/floatlabel";
 import InputNumber from "primevue/inputnumber";
@@ -13,13 +13,13 @@ import Password from "primevue/password";
 import Tag from "primevue/tag";
 import Button from "primevue/button";
 import Column from "primevue/column";
-import Toast from 'primevue/toast';
-import ToastService from 'primevue/toastservice';
+import Toast from "primevue/toast";
+import ToastService from "primevue/toastservice";
 import Aura from "./presets/aura"; // import the Aura preset
 import router from "./router/index";
 // import client from "pocketbase";
 import pbClient from "./pocketbase";
-import {createPinia} from "pinia";
+import { createPinia } from "pinia";
 import App from "./App.vue";
 
 // Import PrimeVue CSS files
@@ -31,8 +31,8 @@ const app = createApp(App);
 
 // use the vue plugin for primeVue
 app.use(PrimeVue, {
-    unstyled: true,
-    pt: Aura, // use the Aura preset
+  unstyled: true,
+  pt: Aura, // use the Aura preset
 });
 
 app.use(ToastService);
